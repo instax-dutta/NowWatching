@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watch Movie</title>
+</head>
+<body>
+    <h1>Watching {{ filename }}</h1>
+    <select id="qualitySelector">
+        <option value="720p">720p</option>
+        <option value="1080p">1080p</option>
+        <option value="1440p">2K (1440p)</option>
+        <option value="2160p">4K (2160p)</option>
+    </select>
+
+    <video id="videoPlayer" controls width="800">
+        <source id="videoSource" src="{{ url_for('uploads', filename='720p_' + filename) }}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        const videoPlayer = document.getElementById('videoPlayer');
+        const videoSource = document.getElementById('videoSource');
+        const qualitySelector = document.getElementById('qualitySelector');
+
+        qualitySelector.addEventListener('change', () => {
+            const selectedQuality = qualitySelector.value;
+            videoSource.src = `/uploads/${selectedQuality}_{{ filename }}`;
+            videoPlayer.load();
+            socket.emit('sync', { action: 'seek', time: videoPlayer.currentTime });
+        });
+
+        videoPlayer.addEventListener('play', () => {
+            socket.emit('sync', { action: 'play', time: videoPlayer.currentTime });
+        });
+
+        videoPlayer.addEventListener('pause', () => {
+            socket.emit('sync', { action: 'pause', time: videoPlayer.currentTime });
+        });
+
+        videoPlayer.addEventListener('seeked', () => {
+            socket.emit('sync', { action: 'seek', time: videoPlayer.currentTime });
+        });
+
+        socket.on('sync', (data) => {
+            if (data.action === 'play') {
+                videoPlayer.currentTime = data.time;
+                videoPlayer.play();
+            } else if (data.action === 'pause') {
+                videoPlayer.currentTime = data.time;
+                videoPlayer.pause();
+            } else if (data.action === 'seek') {
+                videoPlayer.currentTime = data.time;
+            }
+        });
+    </script>
+</body>
+</html>

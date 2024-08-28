@@ -12,7 +12,7 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
 def transcode_video(filepath, output_folder):
-    resolutions = ['720p', '1080p', '1440p', '2160p']  # 720p, 1080p, 2K, 4K
+    resolutions = ['720p', '1080p', '1440p', '2160p']
     output_files = []
 
     for resolution in resolutions:
